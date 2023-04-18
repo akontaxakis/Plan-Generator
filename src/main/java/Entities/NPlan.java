@@ -1,11 +1,19 @@
+package Entities;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class Plan {
+public class NPlan {
 
-    private HashMap<Artifact, Integer> Artifacts;
+    private HashMap<NArtifact, Integer> Artifacts;
     private int cost;
+
+    public NPlan(NPlan p1) {
+        this.cost = p1.getCost();
+        Artifacts =  new HashMap<>();
+        Artifacts.putAll(p1.getArtifacts());
+    }
 
     public int getCost() {
         return cost;
@@ -16,22 +24,24 @@ public class Plan {
     }
 
 
-    public Plan() {
+    public NPlan() {
         Artifacts = new HashMap<>();
         cost = 0;
     }
 
     @Override
     public String toString() {
-        String tmp = "";
-        for (Map.Entry<Artifact,Integer> child : Artifacts.entrySet()) {
-            tmp = tmp + child.getKey().getPosition() + "!" + child.getValue() +"-";
+        String tmp = "Τhe Size of the plan " + Artifacts.size() + "\n";
+
+        for (Map.Entry<NArtifact,Integer> child : Artifacts.entrySet()) {
+            tmp = tmp + child.getKey().getPosition() + "!" + child.getValue() +"-" + child.getKey().getType() + "|";
+
         }
         tmp = tmp + " the cost is:" + cost;
         return tmp;
     }
 
-    public void copy(Artifact a, int cost) {
+    public void copy(NArtifact a, int cost) {
         Integer k = Artifacts.get(a);
         if (k == null) {
             Artifacts.put(a, cost);
@@ -39,30 +49,30 @@ public class Plan {
         }
     }
 
-    public int findCombinedCost(Plan p1) {
-        for (Map.Entry<Artifact, Integer> a : p1.Artifacts.entrySet()) {
+    public int findCombinedCost(NPlan p1) {
+        for (Map.Entry<NArtifact, Integer> a : p1.Artifacts.entrySet()) {
             this.copy(a.getKey(), a.getValue());
         }
         return this.cost;
     }
 
-    public void copy(Plan p1) {
-        for (Map.Entry<Artifact, Integer> a : p1.Artifacts.entrySet()) {
+    public void copy(NPlan p1) {
+        for (Map.Entry<NArtifact, Integer> a : p1.Artifacts.entrySet()) {
             this.copy(a.getKey(), a.getValue());
         }
 
     }
 
-    public HashMap<Artifact, Integer> getArtifacts() {
+    public HashMap<NArtifact, Integer> getArtifacts() {
         return Artifacts;
     }
 
-    public void setArtifacts(HashMap<Artifact, Integer> artifacts) {
+    public void setArtifacts(HashMap<NArtifact, Integer> artifacts) {
         Artifacts = artifacts;
     }
 
     public boolean isValid() {
-        for (Artifact a : Artifacts.keySet()) {
+        for (NArtifact a : Artifacts.keySet()) {
             if (a.isOR()) {
                 if(a.getParents()==null){
                     return false;
@@ -70,11 +80,11 @@ public class Plan {
                 if (!(a.getParents().size() == 1)) {
                     return false;
                 }
-                for (Artifact j : a.getParents().keySet()) {
+                for (NArtifact j : a.getParents().keySet()) {
                     setValid(j.getId(),true,Artifacts);
                 }
             } else if (a.isAND()) {
-                for (Artifact j : a.getParents().keySet()) {
+                for (NArtifact j : a.getParents().keySet()) {
                     setValid(j.getId(),true,Artifacts);
                 }
             }
@@ -82,8 +92,8 @@ public class Plan {
         return true;
     }
 
-    private void setValid(UUID id, boolean b, HashMap<Artifact, Integer> artifacts) {
-        for(Artifact a: artifacts.keySet()){
+    private void setValid(UUID id, boolean b, HashMap<NArtifact, Integer> artifacts) {
+        for(NArtifact a: artifacts.keySet()){
             if(a.getId()==id){
                 a.setValid(b);
                 break;
@@ -91,9 +101,9 @@ public class Plan {
         }
     }
 
-    public Plan removeUnValidNodes() {
-        Plan fp=new Plan();
-        for(Map.Entry<Artifact,Integer> a: Artifacts.entrySet()){
+    public NPlan removeUnValidNodes() {
+        NPlan fp=new NPlan();
+        for(Map.Entry<NArtifact,Integer> a: Artifacts.entrySet()){
            if(a.getKey().isValid() == true){
                fp.copy(a.getKey(),a.getValue());
             }

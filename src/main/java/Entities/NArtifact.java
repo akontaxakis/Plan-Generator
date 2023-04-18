@@ -1,12 +1,20 @@
+package Entities;
+
 import java.util.*;
 
-public class Artifact {
+public class NArtifact {
 
     private UUID id;
     private int position;
     private int additiveCost=0;
     private boolean valid = false;
+    private NArtifact.NodeType type;
+    private boolean materialized;
 
+    private int materializeCost;
+    private int computeCost=0;
+    private HashMap<NArtifact, Integer> Parents;
+    private HashMap<NArtifact, Integer> Children;
 
 
     public UUID getId() {
@@ -17,31 +25,26 @@ public class Artifact {
         return type;
     }
 
-    private Artifact.NodeType type;
-    private boolean materialized;
-    private int materializeCost;
-    private HashMap<Artifact, Integer> Parents;
-    private HashMap<Artifact, Integer> Children;
 
-    public Artifact(Artifact current, Map.Entry<Artifact, Integer> parent) {
+
+    public NArtifact(NArtifact current, Map.Entry<NArtifact, Integer> parent) {
         id=current.getId();
         position=current.getPosition();
         type=current.getType();
         materialized=false;
         materializeCost=0;
-        HashMap<Artifact, Integer> Parents = new HashMap<>();
+        HashMap<NArtifact, Integer> Parents = new HashMap<>();
         Parents.put(parent.getKey(),parent.getValue());
-        HashMap<Artifact, Integer> Children=null;
-
+        HashMap<NArtifact, Integer> Children=null;
     }
 
-    public HashMap<Artifact, Integer> getParents() {
+    public HashMap<NArtifact, Integer> getParents() {
         return Parents;
     }
 
-    public Artifact getParent(int i) {
+    public NArtifact getParent(int i) {
         int j=0;
-        for(Artifact a:Parents.keySet()){
+        for(NArtifact a:Parents.keySet()){
             if(j==i){
                 return a;
             }
@@ -53,7 +56,7 @@ public class Artifact {
     @Override
     public String toString() {
         if (isROOT()) {
-            return "Artifact{" +
+            return "Entities.Artifact{" +
                     "id=" + id +
                     ", position=" + position +
                     ", type=" + type +
@@ -62,7 +65,7 @@ public class Artifact {
                     ", Children=" + Children.size() +
                     '}';
         }else if(isTerminal()){
-            return "Artifact{" +
+            return "Entities.Artifact{" +
                     "id=" + id +
                     ", position=" + position +
                     ", type=" + type +
@@ -72,7 +75,7 @@ public class Artifact {
                     ", Parents=" + Parents.size() +
                     '}';
         }else{
-            return "Artifact{" +
+            return "Entities.Artifact{" +
                     "id=" + id +
                     ", position=" + position +
                     ", type=" + type +
@@ -93,23 +96,21 @@ public class Artifact {
         return NodeType.ROOT == type;
     }
 
-    public void setChildren(HashMap<Artifact, Integer> children) {
+    public void setChildren(HashMap<NArtifact, Integer> children) {
         Children = children;
     }
 
-
-
-    public Artifact() {
+    public NArtifact() {
         this.id = UUID.randomUUID();
         this.position = 0;
         this.type = NodeType.LEAF;
         this.materialized = false;
         this.materializeCost = 1000000000;
-        Parents = new HashMap<Artifact, Integer>();
-        Children = new HashMap<Artifact, Integer>();
+        Parents = new HashMap<NArtifact, Integer>();
+        Children = new HashMap<NArtifact, Integer>();
     }
 
-    public Artifact(Artifact.NodeType type) {
+    public NArtifact(NArtifact.NodeType type) {
         this.id = UUID.randomUUID();
         this.position = 0;
         this.type = type;
@@ -117,25 +118,26 @@ public class Artifact {
             this.materialized = true;
             this.materializeCost = 0;
             Parents = null;
-            Children = new HashMap<Artifact, Integer>();
+            Children = new HashMap<NArtifact, Integer>();
         } else {
             this.materialized = false;
             this.materializeCost = 1000000000;
-            Parents = new HashMap<Artifact, Integer>();
-            Children = new HashMap<Artifact, Integer>();
+            Parents = new HashMap<NArtifact, Integer>();
+            Children = new HashMap<NArtifact, Integer>();
         }
     }
 
 
-    public Artifact(UUID id, int position, NodeType type, boolean materialized, int materializeCost, HashMap<Artifact, Integer> parents, HashMap<Artifact, Integer> children) {
+    public NArtifact(UUID id, int position, NodeType type, boolean materialized, int materializeCost, int computeCost, HashMap<NArtifact, Integer> parents, HashMap<NArtifact, Integer> children) {
         this.id = id;
         this.position = position;
         this.type = type;
         this.materialized = materialized;
+        this.computeCost = computeCost;
         this.materializeCost = materializeCost;
         Parents = parents;
         if(children==null){
-            Children = new HashMap<Artifact, Integer>();
+            Children = new HashMap<NArtifact, Integer>();
         }else {
             Children = children;
         }
@@ -144,27 +146,44 @@ public class Artifact {
     public String printPosAndChildren() {
         String tmp = "!";
         if (isROOT()) {
-            for (Artifact child : Children.keySet()) {
+            for (NArtifact child : Children.keySet()) {
                 tmp = tmp + child.getPosition() + "-"+child.getAdditiveCost()+"!";
             }
-            return
-                    "pos=" + position +
-                            ", Children=" + tmp +
-                            '}';
-        } else if (isTerminal()) {
-            return "pos=" + position;
-        } else {
-            for (Artifact child : Children.keySet()) {
-                tmp = tmp + child.getPosition() + "!";
+            return "pos=" + position + ", Children=" + tmp + '}';
+        } else if (isTerminal()){
+            for (Map.Entry<NArtifact, Integer> child : Parents.entrySet()){
+                tmp = tmp + child.getKey().getType() + "!" + child.getKey().getPosition() + "!" + child.getValue().intValue() + "!";
             }
-            return
-                    "pos=" + position +
-                            ", Children=" + tmp +
-                            '}';
+            return "pos=" + position + ", Parents=" + tmp + '}';
+        }else{
+            for (Map.Entry<NArtifact, Integer> child : Parents.entrySet()) {
+                tmp = tmp + child.getKey().getType() + "!" + child.getKey().getPosition() + "!" + child.getValue().intValue() + "!";
+            }
+            return "pos=" + position + ", Parents=" + tmp + '}';
         }
     }
 
-    public void addChild(Artifact tmp, Integer cost) {
+    public String printPosAndParents() {
+        String tmp = "!";
+        if (isROOT()){
+            for (NArtifact child : Children.keySet()) {
+                tmp = tmp + child.getPosition() + "-"+child.getAdditiveCost()+"!";
+            }
+            return "pos=" + position + ", Children=" + tmp + '}';
+        }else if(isTerminal()){
+            for (Map.Entry<NArtifact, Integer> child : Parents.entrySet()) {
+                tmp = tmp + child.getKey().getType() + "!" + child.getKey().getPosition() + "!" + child.getValue().intValue() + "!";
+            }
+            return "pos=" + position + ", Parents=" + tmp + '}';
+        }else{
+            for (Map.Entry<NArtifact, Integer> child : Parents.entrySet()) {
+                tmp = tmp + child.getKey().getType() + "!" + child.getKey().getPosition() + "!" + child.getValue().intValue() + "!";
+            }
+            return "pos=" + position + ", Parents=" + tmp + '}';
+        }
+    }
+
+    public void addChild(NArtifact tmp, Integer cost) {
         this.Children.put(tmp,cost);
     }
 
@@ -176,10 +195,7 @@ public class Artifact {
         return  this.type == NodeType.ORNODE;
     }
 
-
-
-
-    enum NodeType {
+    public enum NodeType {
         ANDNODE,
         ORNODE,
         LEAF,
@@ -190,12 +206,11 @@ public class Artifact {
         }
     }
 
-    static class SortbyPOS implements Comparator<Artifact> {
-
+    public static class SortbyPOS implements Comparator<NArtifact> {
         // Method
         // Sorting in ascending order of roll number
         @Override
-        public int compare(Artifact o1, Artifact o2) {
+        public int compare(NArtifact o1, NArtifact o2) {
             return o1.getPosition()-o2.getPosition();
         }
     }
@@ -216,10 +231,10 @@ public class Artifact {
     }
 
 
-    public void setParents(HashMap<Artifact, Integer> parents) {
+    public void setParents(HashMap<NArtifact, Integer> parents) {
         Parents = parents;
     }
-    public HashMap<Artifact, Integer> getChildren() {
+    public HashMap<NArtifact, Integer> getChildren() {
         return Children;
     }
 
@@ -229,5 +244,18 @@ public class Artifact {
 
     public void setValid(boolean valid) {
         this.valid = valid;
+    }
+
+    public int getMaterializeCost() {
+        return materializeCost;
+    }
+    public void setMaterializeCost(int materializeCost) {
+        this.materializeCost = materializeCost;
+    }
+    public int getComputeCost() {
+        return computeCost;
+    }
+    public void setComputeCost(int computeCost) {
+        this.computeCost = computeCost;
     }
 }

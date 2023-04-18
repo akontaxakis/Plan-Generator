@@ -1,30 +1,43 @@
+import DirectedGraph.DirectedGraph;
+import DirectedGraph.MaximumFlow;
+import java.util.ArrayList;
+import java.util.HashMap;
+import DirectedGraph.Edge;
 import Entities.NArtifact;
 import Entities.NPlan;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
-public class main {
+public class Limited_AG_test {
     public static void main(String[] args) {
 
-        for (int l = 0; l < 1; l++) {
+        for (int l = 0; l < 5; l++) {
             int expected_size =1;
             System.out.println(" EXPERIMENT : " + (l + 1));
             long startTime = System.nanoTime();
-            ArtifactGraph AG_2 = new ArtifactGraph();
-            AG_2.generate_random_graph_AND_OR(4, 10, 5, 80, 100);
+
+            //ArtifactGraph AG = new ArtifactGraph();
+            //AG.generate_random_graph(10, 10);
+
+            ArtifactGraph AG = new ArtifactGraph();
+            //AG_2.generate_random_graph_2(10,10,20);
+
+            AG.generate_random_limited_graph_AND_OR(4, 3, 4, 50, 20);
+
             long endTime = System.nanoTime();
+
             System.out.println(" Time to Generate graph in milliseconds " + (endTime - startTime) / 1000000);
 
-            AG_2.describe();
-            AG_2.printLikeAgraphP();
-            ArrayList<NArtifact> rqs = AG_2.getSomeTerminals(4);
+            AG.describe();
+
+            ArrayList<NArtifact> rqs = AG.getSomeTerminals(4);
             /*
                             #### HEURISTIC ALGORITHM ####
             */
             startTime = System.nanoTime();
 
-            AG_2.updateAdditiveCost();
+
+            //AG.printLikeAgraphP();
+
+            AG.updateAdditiveCost();
 
             int sum = 0;
             for (NArtifact a : rqs) {
@@ -35,27 +48,52 @@ public class main {
 
             System.out.println(" Time to run Heuristic in milliseconds " + (endTime - startTime) / 1000000);
             System.out.println("The MIN Heuristic Cost is:" + sum);
-            /*
-                            #### PLANS GENERATION ####
-            */
+
+
+/*
+                            #### EXHAUSTIVE SEARCH ####
+*/
             startTime = System.nanoTime();
 
-            ArrayList<NPlan> NPlans =AG_2.Exhaustive_Search(0);
+            ArrayList<NPlan> NPlans =AG.Exhaustive_Search(0);
 
             endTime = System.nanoTime();
 
             //describe(Plans);
+
             System.out.println(" Exhaustive Search " + ((endTime - startTime) / 1000000));
-            System.out.println(" Expected Size: " + AG_2.ExpectedNumberOfPlans() + " Actual Size = "+ NPlans.size());
+            System.out.println(" Expected Size: " + AG.ExpectedNumberOfPlans() + " Actual Size = "+ NPlans.size());
             ArrayList<NPlan> validNPlans = validatePlans(NPlans);
             System.out.println(" Valid Plans = " + validNPlans.size());
             NPlan bestNPlan = minimumCostPlan(validNPlans);
             System.out.println(bestNPlan.toString());
             System.out.println(" Best Plan has a cost of = " + bestNPlan.getCost());
-            //PlansGenerationAndExhaustivelyCombiningPLans(startTime, AG_2, rqs);
+
+
+
+
+               /*
+                            #### HELIX MAX_FLOW ALGORITHM SEARCH ####
+               */
+
+            startTime = System.nanoTime();
+
+            DirectedGraph g = AG.toHelixGraph(AG.getSink()*2+1);
+            MaximumFlow mx = new MaximumFlow(g);
+
+            HashMap<Edge, Integer> flow = mx.getMaxFlow(0, AG.getSink()*2+1);
+             mx.printFlow(flow,0);
+            System.out.println(mx.getFlowSize(flow,0));
+
+            endTime = System.nanoTime();
+
+            //describe(Plans);
+
+            System.out.println(" The MAX-FLOW " + ((endTime - startTime) / 1000000));
+
         }
-        //AG.sortArtifacts();
     }
+
 
     private static NPlan minimumCostPlan(ArrayList<NPlan> validNPlans) {
         int min = 1000000;
@@ -72,7 +110,7 @@ public class main {
     private static ArrayList<NPlan> validatePlans(ArrayList<NPlan> NPlans) {
         ArrayList<NPlan> validNPlans = new ArrayList<>();
         for(NPlan p: NPlans){
-            if(p.isValid()){
+            if(p.isValid()) {
                 NPlan fp=p.removeUnValidNodes();
                 validNPlans.add(fp);
             }
@@ -125,7 +163,7 @@ public class main {
 
 
         int min = 100000;
-        for (NPlan p1 : t_N_plans){
+        for (NPlan p1 : t_N_plans) {
             NPlan tmp_p = new NPlan();
             tmp_p.copy(p1);
             for (NPlan p2 : tmp) {
@@ -137,7 +175,9 @@ public class main {
             }
         }
         endTime = System.nanoTime();
+
         System.out.println(" Time to find the best plan: " + (endTime - startTime) / 1000000);
+
         System.out.println("Minimum combined Cost:" + min);
     }
 
@@ -149,7 +189,9 @@ public class main {
             }
         }
         return min;
-   }
+    }
+
+
 
 }
 
