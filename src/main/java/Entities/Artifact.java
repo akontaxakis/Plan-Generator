@@ -10,24 +10,29 @@ public class Artifact {
     private Artifact.NodeType type;
     private boolean materialized;
     private int loadCost;
-    private boolean load = false;
-    private int recreation_cost=0;
-    private int latency_cost =0;
-    private int computeCost=0;
-    private int depth = 10000000;
-
-
-
-    private int tmp_depth = 0;
-    private int heuristic_cost=0;
+    private boolean load= false;
+    private int recreation_cost= 0;
+    private int latency_cost= 0;
+    private int computeCost= 0;
+    private int depth= 10000000;
+    private int tmp_depth= 0;
+    private int heuristic_cost= 0;
     private ArrayList<HyperEdge> IN;
     private ArrayList<HyperEdge> OUT;
+
+    private int freq;
+    private int score;
+    private int size;
 
     public Artifact(Artifact current, ArrayList<Artifact> in, int c) {
         this.id = current.getId();
         position = current.getPosition();
         this.IN = new ArrayList<>();
         this.addIN(new HyperEdge(in,this,c));
+    }
+
+    public Artifact(String tmp_name, Artifact artifact) {
+        id = artifact.getId() + tmp_name;
     }
 
 
@@ -88,7 +93,7 @@ public class Artifact {
     @Override
     public String toString() {
 
-            return
+            return  " NAME=" + id +
                     ", position=" + position +
                     ", type=" + type +
                     ", materialized=" + materialized +
@@ -108,10 +113,17 @@ public class Artifact {
         OUT.add(a);
     }
     public void removeIN(HyperEdge a){
-        IN.remove(a);
+        if(a==null)
+            IN.remove(0);
+        else
+            IN.remove(a);
     }
     public void removeOUT(HyperEdge a){
-        OUT.remove(a);
+        if(a==null)
+            OUT.remove(0);
+        else {
+            OUT.remove(a);
+        }
     }
 
 
@@ -136,10 +148,11 @@ public class Artifact {
     }
 
     public String print() {
-        return
-                "position=" + position +
-                        ", NAME=" + id +
+        return  " NAME=" + id +
+                ", position=" + position +
+
                         ", shared_by=" + OUT.size() +
+                        ", equivalent_by=" + IN.size() +
                         ", type=" + type;
     }
 
@@ -154,6 +167,9 @@ public class Artifact {
 
     public int getDepth() {
         return depth;
+    }
+    public void setDepth(int d){
+        this.depth =d;
     }
 
     public int getLatency_cost() {
@@ -199,6 +215,15 @@ public class Artifact {
         return min;
     }
 
+    public int INDepth() {
+        int max_depth = 1000000;
+        for(HyperEdge in: IN){
+            if(in.getDepth() < max_depth){
+                max_depth = in.getDepth();
+            }
+        }
+        return max_depth;
+    }
 
 
     public enum NodeType {

@@ -14,12 +14,13 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    private ArrayList<Proposition> propositions;
    private ArrayList<Artifact> already_expanded;
    private int heuristic_cost=0;
-
+   private Integer latency;
 
    private boolean finished=false;
 
    public Proposition_plan(){
       cost =0;
+      latency =0;
       finished = false;
       propositions = new ArrayList<>();
       already_expanded = new ArrayList<>();
@@ -28,12 +29,14 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    public Proposition_plan(Proposition_plan bestPlan) {
       propositions = new ArrayList<>(bestPlan.getP());
       cost = bestPlan.getCost();
+      latency = bestPlan.getLatency();
       already_expanded = new ArrayList<>(bestPlan.getAlready_expanded());
       finished = false;
    }
 
    public Proposition_plan(int i) {
       cost =i;
+      latency =0;
       propositions = new ArrayList<>();
       finished = false;
    }
@@ -42,6 +45,7 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
       propositions = new ArrayList<>();
       Proposition tmp = new Proposition(0, request);
       cost = 0;
+      latency = 0;
       already_expanded = new ArrayList<>(request);
       propositions.add(tmp);
       finished = false;
@@ -96,6 +100,7 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    }
 
    public void add(Proposition p) {
+      this.latency = this.latency + p.getLatency();
       this.cost = this.cost +p.getCost();
       this.propositions.add(p);
       add_in_exanded_list(p);
@@ -205,5 +210,12 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    public int compareTo(Proposition_plan o) {
       return this.getCost().compareTo(o.getCost());
    }
+
+
+   public Integer getLatency() {
+      return latency;
+   }
+
+
 }
 

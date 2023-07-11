@@ -34,7 +34,7 @@ public class Example_sheduling {
 
             AG = new HyperGraph();
             AG.generateRandomHG(number_of_requests, width, depth, materialiazed, artifact_in_degree, task_in_degree, task_out_degree, default_cost);
-            ArrayList<Artifact> requests = AG.getRequests();
+            ArrayList<Artifact> requests =null;
 
             float number_of_plans = AG.PrintNumberOfPlans();
 

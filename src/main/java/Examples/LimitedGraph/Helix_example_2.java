@@ -61,7 +61,6 @@ public class Helix_example_2 {
         artifacts[3].setLoadCost(l3);
         artifacts[3].setComputeCost(c3);
 
-
         //Artifact 4
         hyperEdges[4]  = new HyperEdge(artifacts[0],artifacts[4],l4);
         artifacts[4].setLoadCost(l4);
@@ -71,6 +70,7 @@ public class Helix_example_2 {
         hyperEdges[5] = new HyperEdge(artifacts[2],artifacts[4],c4);
         artifacts[4].addIN(hyperEdges[5]);
         artifacts[4].setComputeCost(c4);
+
         //Artifact 5
         hyperEdges[5]= new HyperEdge(artifacts[3],artifacts[5],c5);
         hyperEdges[5].addIN(artifacts[4]);
@@ -89,7 +89,7 @@ public class Helix_example_2 {
         Proposition_plan tmpPLan = new Proposition_plan();
 
              /*
-                                #### HEURISTIC ALGORITHM ####
+                              #### HEURISTIC ALGORITHM ####
             */
         startTime = System.nanoTime();
         AG.compute_the_latency_of_artifacts();
@@ -99,8 +99,8 @@ public class Helix_example_2 {
         System.out.println("The MIN Heuristic Cost is:" + Heuristic_search_Plan.getCost());
 
 
-             /*
-                                #### Collaborative ALGORITHM ####
+            /*
+                             #### Collaborative ALGORITHM ####
             */
         startTime = System.nanoTime();
 
@@ -127,14 +127,10 @@ public class Helix_example_2 {
         System.out.println(HelixPlan.EdgeCost());
         //fastPlan.print();
 
-
-
-
-                /*
+             /*
                              #### EXHAUSTIVE SEARCH ####
-                */
+             */
         startTime = System.nanoTime();
-
         Proposition_plan bestPlan = AG.iterative_exhaustive(requests);
         //bestPlan.print();
         endTime = System.nanoTime();
@@ -143,8 +139,6 @@ public class Helix_example_2 {
         long exhaustive_time =  ((endTime - startTime) / 1000000);
         bestPlan.print();
         System.out.println("Fast plan: "+Heuristic_search_Plan.getCost() +" Best Plan: "+bestPlan.getCost());
-
-
 
     }
 

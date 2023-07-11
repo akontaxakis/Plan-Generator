@@ -8,11 +8,18 @@ public class  Proposition {
     private ArrayList<Artifact> artifacts;
     private Integer cost;
 
+
+
+    private int latency;
     public Proposition(int sum, ArrayList<Artifact> new_current) {
         this.cost = sum;
         this.artifacts = new ArrayList<>(new_current);
     }
-
+    public Proposition(int max, int sum, ArrayList<Artifact> new_current) {
+        this.cost = sum;
+        this.artifacts = new ArrayList<>(new_current);
+        this.latency = max;
+    }
 
 
     public ArrayList<Artifact> getArtifacts() {
@@ -56,5 +63,8 @@ public class  Proposition {
         for(Artifact a: artifacts){
             a.setLatency_cost(i);
         }
+    }
+    public int getLatency() {
+        return latency;
     }
 }
