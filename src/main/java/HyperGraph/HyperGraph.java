@@ -550,26 +550,29 @@ public class HyperGraph {
         if (!current.get(i).isROOT()) {
             if (!already_expanded.contains(current.get(i))) {
                 already_expanded.add(current.get(i));
-            }
-            for (HyperEdge e : current.get(i).getIN()) {
-                ArrayList<Artifact> new_current = new ArrayList<>(current);
-                new_current.remove(current.get(i));
-                int k = addAll(new_current, i, e.getIN(), already_expanded);
-                if (i >= current.size() - 1)
-                    propositions.add(new Proposition(max, sum + e.getCost(), new_current));
-                if (k > 0) {
-                    if (e.getCost() > max)
-                        max = e.getCost();
-                    generatePropositions(max, sum + e.getCost(), i + k, propositions, new_current, already_expanded);
-                } else {
-                    if (e.getCost() > max)
-                        max = e.getCost();
-                    generatePropositions(max, sum + e.getCost(), i + 1, propositions, new_current, already_expanded);
+            } else {
+                for (HyperEdge e : current.get(i).getIN()) {
+                    ArrayList<Artifact> new_current = new ArrayList<>(current);
+                    new_current.remove(current.get(i));
+                    int k = addAll(new_current, i, e.getIN(), already_expanded);
+                    new_current.removeAll(e.getOUT());
+                    if (i >= current.size() - 1)
+                        propositions.add(new Proposition(max, sum + e.getCost(), new_current));
+                    if (k > 0) {
+                        if (e.getCost() > max)
+                            max = e.getCost();
+                        generatePropositions(max, sum + e.getCost(), i + k, propositions, new_current, already_expanded);
+                    } else {
+                        if (e.getCost() > max)
+                            max = e.getCost();
+                        generatePropositions(max, sum + e.getCost(), i + 1, propositions, new_current, already_expanded);
+                    }
                 }
             }
-        } else {
-            generatePropositions(max, sum, i + 1, propositions, current, already_expanded);
         }
+        else{
+                generatePropositions(max, sum, i + 1, propositions, current, already_expanded);
+            }
     }
 
     private int addAll(ArrayList<Artifact> new_current, int i, ArrayList<Artifact> in, ArrayList<Artifact> already_expaned) {
@@ -695,7 +698,6 @@ public class HyperGraph {
         }
         return result;
     }
-
     public Proposition_plan ClosestProposition(Proposition_plan BestPlan, ArrayList<Artifact> rq, ArrayList<Artifact> already_expanded) {
         if (isROOT(rq)) {
             //System.out.println("BP: " + BestPlan.getCost());
@@ -716,8 +718,6 @@ public class HyperGraph {
             }
         }
         return best_candidate_plan;
-
-
     }
 
     public DirectedGraph toHelixGraph(int sink) {
@@ -771,9 +771,7 @@ public class HyperGraph {
         return g;
     }
 
-
     public HyperGraph flowToAG(ArrayList<Integer> flow) {
-
 
         ArrayList<Integer> final_nodes = (ArrayList<Integer>) flow.stream().distinct().sorted().collect(Collectors.toList());
         final_nodes.remove(0);
@@ -783,10 +781,10 @@ public class HyperGraph {
             if (final_nodes.get(i) % 2 == 0) {
                 Artifact tmp = this.getPosition(final_nodes.get(i) / 2);
                 if (final_nodes.contains(final_nodes.get(i) + 1)) {
-                    tmp.setLoad(false);
+                    tmp.setMaterialized(false);
                 } else {
                     if (tmp.isINTERMEDIATE())
-                        tmp.setLoad(true);
+                        tmp.setMaterialized(true);
                 }
                 Artifacts.add(tmp);
             }
@@ -798,7 +796,7 @@ public class HyperGraph {
     private HyperGraph newHyperGraph(ArrayList<Artifact> artifacts) {
         HashSet<HyperEdge> Tasks = new HashSet<>();
         for (Artifact a : artifacts) {
-            if (a.isLoad()) {
+            if (a.isMateriliazed()) {
                 Tasks.add(a.getLoadEgde());
             } else {
                 Tasks.add(a.getComputeEgde());
@@ -846,9 +844,9 @@ public class HyperGraph {
                 a.setRecreation_cost(recreation_cost);
                 if (tmp.getIN().get(0).isROOT()) {
                     R.add(a);
-                    a.setLoad(true);
+                    a.setMaterialized(true);
                 } else {
-                    a.setLoad(false);
+                    a.setMaterialized(false);
                 }
             }
         }
@@ -871,7 +869,6 @@ public class HyperGraph {
 
 
     }
-
     public long getArtifactsSize() {
         return Artifacts.size();
     }
@@ -879,7 +876,6 @@ public class HyperGraph {
     public long getEdgeSize() {
         return Tasks.size();
     }
-
 
     public void printSharableArtifacts() {
         System.out.println("SHARABLE");
@@ -898,7 +894,6 @@ public class HyperGraph {
         }
 
     }
-
 
     public void setRequests(ArrayList<String> requests) {
         for (Artifact a : Artifacts) {
@@ -1071,6 +1066,9 @@ public class HyperGraph {
                 if(e.getIN().get(0).getId().startsWith(id)){
                     to_remove.add(e);
                 }
+                if(e.getOUT().get(0).getId().startsWith(id)){
+                    to_remove.add(e);
+                }
             }
             for(HyperEdge e: to_remove)
                 Tasks.remove(e);
@@ -1141,6 +1139,18 @@ public class HyperGraph {
                 a.setComputeCost(a.getIN().get(0).getCost());
                 a.setLoadCost(100000);
             }
+        }
+    }
+
+    public void removeArtifacts(ArrayList<Artifact> artifacts_to_remove) {
+        for (Artifact a: artifacts_to_remove){
+            Artifacts.remove(a);
+        }
+    }
+
+    public void removeHyperEdges(ArrayList<HyperEdge> hyperEdge_to_remove) {
+        for (HyperEdge e: hyperEdge_to_remove){
+            Tasks.remove(e);
         }
     }
 }

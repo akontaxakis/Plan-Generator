@@ -8,9 +8,11 @@ public class Artifact {
     private int position;
     private int additiveCost=0;
     private Artifact.NodeType type;
-    private boolean materialized;
+
+    private  int loading_speed = 566255240;
+
+    private boolean materialized=false;
     private int loadCost;
-    private boolean load= false;
     private int recreation_cost= 0;
     private int latency_cost= 0;
     private int computeCost= 0;
@@ -33,6 +35,22 @@ public class Artifact {
 
     public Artifact(String tmp_name, Artifact artifact) {
         id = artifact.getId() + tmp_name;
+    }
+
+
+    public Artifact(String id, String group, int parseInt, double parseDouble, int pos) {
+    this.id = id;
+    this.position = pos;
+    if(group.startsWith("source")) {
+        type = NodeType.ROOT;
+    }else{
+        type = NodeType.INTERMEDIATE;
+    }
+    this.computeCost = (int)parseDouble;
+    this.loadCost = parseInt/loading_speed;
+
+        IN = new ArrayList<>();
+        OUT = new ArrayList<>();
     }
 
 
@@ -225,6 +243,10 @@ public class Artifact {
         return max_depth;
     }
 
+    public boolean isMateriliazed() {
+        return materialized;
+    }
+
 
     public enum NodeType {
         ROOT,
@@ -269,14 +291,6 @@ public class Artifact {
         this.computeCost = computeCost;
     }
 
-    public boolean isLoad() {
-        return load;
-    }
-
-    public void setLoad(boolean load) {
-        this.load = load;
-    }
-
     public int getRecreation_cost() {
         return recreation_cost;
     }
@@ -296,8 +310,23 @@ public class Artifact {
         return OUT;
     }
 
+    public HyperEdge getOUT(String id) {
+        for(HyperEdge e: OUT){
+            if(e.getOUT().get(0).getId().startsWith(id))
+                return e;
+        }
+        return null;
+    }
+
     public void setOUT(ArrayList<HyperEdge> OUT) {
         this.OUT = OUT;
     }
 
+    public boolean isMaterialized() {
+        return materialized;
+    }
+
+    public void setMaterialized(boolean materialized) {
+        this.materialized = materialized;
+    }
 }

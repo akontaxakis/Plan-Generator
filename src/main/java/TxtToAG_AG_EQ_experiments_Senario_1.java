@@ -29,7 +29,7 @@ public class TxtToAG_AG_EQ_experiments_Senario_1 {
         int number_of_total_requests = 1;
         //AG.setAllRequests();
         //AG_2.setAllRequests();
-        String operation = "PC";
+        String operation = "ML";
         ArrayList<Artifact> ag_rq = AG.getRequests(operation);
         ArrayList<Artifact> ag2_rq = AG_2.getRequests(operation);
         ag2_rq = remove_gpu_artifact(ag2_rq);
