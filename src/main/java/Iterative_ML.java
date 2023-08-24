@@ -12,8 +12,8 @@ public class Iterative_ML {
 
     public static void main(String[] args) {
         lib utils = new lib();
-        String uid = "s5yn";
-        int iterations = 6;
+        String uid = "exp3";
+        int iterations =6;
         double shared_cummulative_cost =0;
         double limited_cummulative_cost = 0;
         double equivalent_cummulative_cost = 0;
@@ -33,12 +33,15 @@ public class Iterative_ML {
             String operation =  mySet.remove(mySet.size()-1);
             double extra_cost = Double.parseDouble( mySet.remove(mySet.size()-1));
 
+            if(mySet.size()==0){
+                mySet.add(operation);
+            }
             ArrayList<String> eqSet = utils.euqivalentRequests(mySet);
             //String operation = "X_SiStPCLi_predict";
 
             ArrayList<Artifact> limited_rq = limited.getRequests(new HashSet<>(mySet));
             ArrayList<Artifact> shared_rq = shared.getRequests(operation);
-            ArrayList<Artifact> eq_rq = limited.getRequests(new HashSet<>(eqSet));
+            ArrayList<Artifact> eq_rq = equivalent.getRequests(new HashSet<>(eqSet));
 
             //loaded_artifacts = limited.collab_forward_pass();
             //HyperGraph collab_plan_2 = limited.collab_backward_pass(loaded_artifacts, limited_rq);

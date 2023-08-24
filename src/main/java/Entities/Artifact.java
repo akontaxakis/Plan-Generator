@@ -10,7 +10,7 @@ public class Artifact {
     private Artifact.NodeType type;
 
     private  int loading_speed = 566255240;
-
+    //private  int loading_speed = 5602400;
     private boolean materialized=false;
     private int loadCost;
     private int recreation_cost= 0;
@@ -24,7 +24,7 @@ public class Artifact {
 
     private int freq;
     private int score;
-    private int size;
+    private Long size;
 
     public Artifact(Artifact current, ArrayList<Artifact> in, int c) {
         this.id = current.getId();
@@ -38,7 +38,7 @@ public class Artifact {
     }
 
 
-    public Artifact(String id, String group, int parseInt, double parseDouble, int pos) {
+    public Artifact(String id, String group, Long parseInt, double parseDouble, int pos) {
     this.id = id;
     this.position = pos;
     if(group.startsWith("source")) {
@@ -47,7 +47,7 @@ public class Artifact {
         type = NodeType.INTERMEDIATE;
     }
     this.computeCost = (int)parseDouble;
-    this.loadCost = parseInt/loading_speed;
+    this.loadCost = (int) (parseInt/loading_speed);
 
         IN = new ArrayList<>();
         OUT = new ArrayList<>();

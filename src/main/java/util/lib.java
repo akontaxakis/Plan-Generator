@@ -183,15 +183,17 @@ public class lib {
                 String id = matcher.group(1);
                 Map<String, Object> attributes = new HashMap<>();
                 attributes.put("type", matcher.group(2));
-                attributes.put("size", Integer.parseInt(matcher.group(3)));
+                attributes.put("size", Long.parseLong((matcher.group(3))));
                 attributes.put("cc", Double.parseDouble(matcher.group(4)));
-                Artifact a = new Artifact(id, matcher.group(2), Integer.parseInt(matcher.group(3)), Double.parseDouble(matcher.group(4)), pos++);
+                Artifact a = new Artifact(id, matcher.group(2), Long.parseLong((matcher.group(3))), Double.parseDouble(matcher.group(4)), pos++);
                 artifacts.put(id, a);
 
             }
             BufferedReader br2 = new BufferedReader(new FileReader(graph_path + "//edges.txt"));
             while ((line = br2.readLine()) != null) {
-                Pattern pattern = Pattern.compile("\\('(.+?)', '(.+?)', \\{'type': '(.+?)', 'weight': (.*?), 'execution_time': (.*?), 'memory_usage': (.*?)\\}\\)");
+                //Pattern pattern = Pattern.compile("\\('(.+?)', '(.+?)', \\{'type': '(.+?)', 'weight': (.*?), 'execution_time': (.*?), 'memory_usage': (.*?)\\}\\)");
+                Pattern pattern = Pattern.compile("\\('(.+?)', '(.+?)', \\{'type': '(.+?)', 'weight': (.*?), 'execution_time': (.*?), 'memory_usage': (.*?), 'platform': \\[(.+?)\\]\\}\\)");
+
                 Matcher matcher = pattern.matcher(line);
 
                 flag = matcher.find();
@@ -201,7 +203,7 @@ public class lib {
 
                     Artifact a1 = artifacts.get(part1);
                     Artifact a2 = artifacts.get(part2);
-                    int l = (int) (Double.parseDouble(matcher.group(4)) * 1000);
+                    int l = (int) (Double.parseDouble(matcher.group(4)) * 100);
                     HyperEdge he = new HyperEdge(a1, a2, l);
                     a1.addOUT(he);
                     a2.addIN(he);

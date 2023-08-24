@@ -46,14 +46,13 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
       Proposition tmp = new Proposition(0, request);
       cost = 0;
       latency = 0;
-      already_expanded = new ArrayList<>(request);
+      already_expanded = new ArrayList<>();
       propositions.add(tmp);
       finished = false;
    }
 
    public void add(Integer c, Proposition p) {
       this.cost = this.cost +c;
-      already_expanded = new ArrayList<>(p.getArtifacts());
       this.propositions.add(p);
    }
    public ArrayList<Proposition> getP() {
@@ -103,7 +102,6 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
       this.latency = this.latency + p.getLatency();
       this.cost = this.cost +p.getCost();
       this.propositions.add(p);
-      add_in_exanded_list(p);
       if(p.isROOT()){
          finished=true;
       }
@@ -187,7 +185,13 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    }
 
    public ArrayList<Artifact> get_unexpanded_proposition() {
-      return propositions.get(propositions.size()-1).getArtifacts();
+      ArrayList<Artifact> list =  propositions.get(propositions.size()-1).getArtifacts();
+      for (Artifact element : already_expanded) {
+         if (list.contains(element)) {
+            list.remove(element);
+         }
+      }
+      return list;
    }
 
    public ArrayList<Artifact> getAlready_expanded() {
@@ -217,5 +221,8 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    }
 
 
+   public void update_expanded_list() {
+      already_expanded.addAll(this.get_unexpanded_proposition());
+   }
 }
 

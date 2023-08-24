@@ -271,13 +271,14 @@ public class HyperGraph {
 
     public Proposition_plan iterative_exhaustive(ArrayList<Artifact> request) {
         Proposition_plan pp = new Proposition_plan(request);
-        Proposition_plan minimum_finished_plan = new Proposition_plan(100000);
+        Proposition_plan minimum_finished_plan = new Proposition_plan(10000000);
         ArrayList<Proposition_plan> unfinished_plans = new ArrayList<>();
         unfinished_plans.add(pp);
         while (unfinished_plans.size() > 0) {
             Proposition_plan current = unfinished_plans.remove(0);
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, current.get_unexpanded_proposition(), current.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, current.get_unexpanded_proposition(), new Proposition(), current.getAlready_expanded());
+            current.update_expanded_list();
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(current);
@@ -301,7 +302,7 @@ public class HyperGraph {
         while (unfinished_plans.size() > 0) {
             Proposition_plan current = unfinished_plans.remove(0);
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, current.get_unexpanded_proposition(), current.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, current.get_unexpanded_proposition(),new Proposition(), current.getAlready_expanded());
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(current);
@@ -327,7 +328,7 @@ public class HyperGraph {
         }
         while (!pp.isFinished()) {
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), pp.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(),new Proposition(), pp.getAlready_expanded());
             numberOfPops++;
             if (new_propositions.size() == 0)
                 System.out.println("wtf");
@@ -371,7 +372,7 @@ public class HyperGraph {
         PriorityQueue<Proposition_plan> unfinished_plans = new PriorityQueue<>(comparator);
         while (!pp.isFinished()) {
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), pp.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(),new Proposition(), pp.getAlready_expanded());
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(pp);
@@ -389,7 +390,7 @@ public class HyperGraph {
         PriorityQueue<Proposition_plan> unfinished_plans = new PriorityQueue<>(comparator);
         while (!pp.isFinished()) {
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), pp.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(),new Proposition(), pp.getAlready_expanded());
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(pp);
@@ -407,7 +408,7 @@ public class HyperGraph {
         PriorityQueue<Proposition_plan> unfinished_plans = new PriorityQueue<>(comparator);
         while (!pp.isFinished()) {
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), pp.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), new Proposition(),pp.getAlready_expanded());
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(pp);
@@ -425,7 +426,7 @@ public class HyperGraph {
         PriorityQueue<Proposition_plan> unfinished_plans = new PriorityQueue<>(comparator);
         while (!pp.isFinished()) {
             ArrayList<Proposition> new_propositions = new ArrayList<Proposition>();
-            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(), pp.getAlready_expanded());
+            generatePropositions(0, 0, 0, new_propositions, pp.get_unexpanded_proposition(),new Proposition(), pp.getAlready_expanded());
             numberOfPops++;
             for (Proposition p : new_propositions) {
                 Proposition_plan next = new Proposition_plan(pp);
@@ -514,7 +515,7 @@ public class HyperGraph {
             return BestPlan;
         }
         ArrayList<Proposition> propositions = new ArrayList<>();
-        generatePropositions(0, 0, 0, propositions, rq, already_expanded);
+        generatePropositions(0, 0, 0, propositions, rq,new Proposition(), already_expanded);
         numberOfPops++;
         already_expanded.addAll(rq);
         //System.out.println(propositions.size());
@@ -541,51 +542,36 @@ public class HyperGraph {
         return true;
     }
 
-    public void generatePropositions(int max, int sum, int i, ArrayList<Proposition> propositions, ArrayList<Artifact> current, ArrayList<Artifact> already_expanded) {
+    public void generatePropositions(int max, int sum, int i, ArrayList<Proposition> propositions, ArrayList<Artifact> current, Proposition new_proposition, ArrayList<Artifact> already_expanded) {
         if (i >= current.size()) {
-            if (propositions.size() == 0)
-                propositions.add(new Proposition(max, sum, current));
+            new_proposition.update_cost(sum);
+            propositions.add(new_proposition);
             return;
         }
         if (!current.get(i).isROOT()) {
-            if (!already_expanded.contains(current.get(i))) {
-                already_expanded.add(current.get(i));
-            } else {
                 for (HyperEdge e : current.get(i).getIN()) {
-                    ArrayList<Artifact> new_current = new ArrayList<>(current);
-                    new_current.remove(current.get(i));
-                    int k = addAll(new_current, i, e.getIN(), already_expanded);
-                    new_current.removeAll(e.getOUT());
-                    if (i >= current.size() - 1)
-                        propositions.add(new Proposition(max, sum + e.getCost(), new_current));
-                    if (k > 0) {
+                    addAll(new_proposition, i, e.getIN(), already_expanded);
+                    //new_proposition.removeAll(e.getOUT());
                         if (e.getCost() > max)
                             max = e.getCost();
-                        generatePropositions(max, sum + e.getCost(), i + k, propositions, new_current, already_expanded);
-                    } else {
-                        if (e.getCost() > max)
-                            max = e.getCost();
-                        generatePropositions(max, sum + e.getCost(), i + 1, propositions, new_current, already_expanded);
-                    }
+                        ArrayList<Artifact> expanded_list = new ArrayList<>( already_expanded);
+                        expanded_list.add(current.get(i));
+                        generatePropositions(max, sum + e.getCost(), i + 1, propositions, current,new Proposition(new_proposition), expanded_list);
                 }
-            }
         }
         else{
-                generatePropositions(max, sum, i + 1, propositions, current, already_expanded);
+            generatePropositions(max, sum, i + 1, propositions, current,new_proposition, already_expanded);
             }
     }
 
-    private int addAll(ArrayList<Artifact> new_current, int i, ArrayList<Artifact> in, ArrayList<Artifact> already_expaned) {
-        int k = 0;
+    private void addAll(Proposition new_proposition, int i, ArrayList<Artifact> in, ArrayList<Artifact> already_expaned) {
         for (Artifact a : in) {
-            if (!new_current.contains(a) || a.isROOT()) {
+            if (!new_proposition.contains(a)) {
                 if (!already_expaned.contains(a)) {
-                    new_current.add(i + k, a);
-                    k++;
+                    new_proposition.add(a);
                 }
             }
         }
-        return k;
     }
 
     public float PrintNumberOfPlans() {
@@ -666,7 +652,7 @@ public class HyperGraph {
             }
             ArrayList<Artifact> new_current = new ArrayList<>(current);
             new_current.remove(current.get(i));
-            int k = addAll(new_current, i, e.getIN(), already_expanded);
+            int k = 1;//addAll(new_current, i, e.getIN(), already_expanded);
             if (i + k >= new_current.size())
                 propositions.add(new Proposition(sum + e.getCost(), new_current));
             findMinProposition(sum + e.getCost(), i + k, propositions, new_current, already_expanded);
@@ -704,7 +690,7 @@ public class HyperGraph {
             return BestPlan;
         }
         ArrayList<Proposition> propositions = new ArrayList<>();
-        generatePropositions(0, 0, 0, propositions, rq, already_expanded);
+        generatePropositions(0, 0, 0, propositions, rq,new Proposition(), already_expanded);
         already_expanded.addAll(rq);
         //System.out.println(propositions.size());
         Proposition_plan best_candidate_plan = new Proposition_plan(100000);

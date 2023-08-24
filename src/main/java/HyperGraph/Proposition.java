@@ -8,7 +8,22 @@ public class  Proposition {
     private ArrayList<Artifact> artifacts;
     private Integer cost;
 
+    public Proposition(Proposition new_proposition) {
+        artifacts = new ArrayList<>(new_proposition.getArtifacts());
+        cost = new_proposition.getCost();
+    }
 
+    public Proposition() {
+        artifacts = new ArrayList<>();
+        cost = 0;
+    }
+
+    void add(Artifact a){
+        artifacts.add(a);
+    }
+    void update_cost(Integer c){
+        cost = cost + c;
+    }
 
     private int latency;
     public Proposition(int sum, ArrayList<Artifact> new_current) {
@@ -66,5 +81,13 @@ public class  Proposition {
     }
     public int getLatency() {
         return latency;
+    }
+
+    public boolean contains(Artifact a) {
+        return artifacts.contains(a);
+    }
+
+    public void removeAll(ArrayList<Artifact> out) {
+        artifacts.removeAll(out);
     }
 }
