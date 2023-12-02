@@ -30,7 +30,7 @@ public class HelixVsCollabVsClosestVsFastVsHeuristic {
             AG = new HyperGraph();
             AG.generateRandomLimitedHG(number_of_requests, width, depth, materialiazed, artifact_in_degree, task_in_degree, task_out_degree, default_cost);
 
-            ArrayList<Artifact> requests = AG.getRequests();
+            ArrayList<Artifact> requests = AG.getRequests2();
 
         /*
                                 #### Collaborative ALGORITHM ####

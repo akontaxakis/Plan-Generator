@@ -85,14 +85,14 @@ public class Helix_example_1 {
                 */
             startTime = System.nanoTime();
 
-            Proposition_plan bestPlan = AG.exhaustiveSearch(tmpPLan,requests, new ArrayList<>());
+            //Proposition_plan bestPlan = AG.exhaustiveSearch(tmpPLan,requests, new ArrayList<>());
             //bestPlan.print();
             endTime = System.nanoTime();
             //System.out.println(" Time to run Exhaustive in milliseconds " + (endTime - startTime) / 1000000);
-            System.out.println("The MIN Exhaustive Cost is:" + bestPlan.getCost());
+            //System.out.println("The MIN Exhaustive Cost is:" + bestPlan.getCost());
 
-            bestPlan.print();
-            System.out.println("Fast plan: "+fastPlan.getCost() +" Best Plan: "+bestPlan.getCost());
+            //bestPlan.print();
+            //System.out.println("Fast plan: "+fastPlan.getCost() +" Best Plan: "+bestPlan.getCost());
 
 
 

@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -158,32 +159,43 @@ public class lib {
 
     public HyperGraph Artifacts_and_edges_ToHyperGraph(String project_path, String uid, int iteration, String type) {
         int pos = 0;
-        boolean flag, flag2 = false;
+        boolean flag, flag2 = false, flag3 = false;
         HashMap<String, Artifact> artifacts = new HashMap<>();
         ArrayList<HyperEdge> hyperEdges = new ArrayList<>();
         ArrayList<String> nodes = new ArrayList<>();
         String graph_path = project_path + "//graphs//iteration_graphs//" + uid + "_" + type + "_" + iteration;
-
+        long total_size = 0;
         //Artifacts
         try {
             BufferedReader br = new BufferedReader(new FileReader(graph_path + "//nodes.txt"));
             String line;
             while ((line = br.readLine()) != null) {
                 //Pattern pattern = Pattern.compile("'(.*?)', \\{'type': '(.*?)', 'size': (\\d+), 'cc': (\\d+.\\d+)\\}");
-
-                Pattern pattern = Pattern.compile("\\('(.+?)', \\{'type': '(.+?)', 'size': (\\d+), 'cc': (\\d+)\\}\\)");
+                //Pattern pattern = Pattern.compile("\\('(.+?)', \\{'type': '(.+?)', 'size': (\\d+), 'cc': (\\d+)\\}\\)");
+                Pattern pattern = Pattern.compile("\\('(.+?)', \\{'type': '(.+?)', 'size': (\\d+), 'cc': (\\d+), 'frequency': (\\d+)\\}\\)");
                 Matcher matcher = pattern.matcher(line);
                 flag = matcher.find();
                 if (!flag) {
-                    pattern = Pattern.compile("'(.*?)', \\{'type': '(.*?)', 'size': (\\d+), 'cc': (\\d+.\\d+)\\}");
+                    pattern = Pattern.compile("'(.*?)', \\{'type': '(.*?)', 'size': (\\d+), 'cc': (\\d+.\\d+), 'frequency': (\\d+)\\}");
                     matcher = pattern.matcher(line);
                     flag2 = matcher.find();
+                    if (!flag2 ) {
+                        pattern = Pattern.compile("'(.*?)', \\{'type': '(.*?)', 'size': (\\d+), 'cc': (\\d+.\\d+)\\}");
+                        matcher = pattern.matcher(line);
+                        flag3 = matcher.find();
+                        if (!flag3) {
+                            pattern = Pattern.compile("\\('(.+?)', \\{'type': '(.+?)', 'size': (\\d+), 'cc': (\\d+)\\}\\)");
+                            matcher = pattern.matcher(line);
+                            flag3 = matcher.find();
+                        }
+                }
                 }
 
                 String id = matcher.group(1);
                 Map<String, Object> attributes = new HashMap<>();
                 attributes.put("type", matcher.group(2));
                 attributes.put("size", Long.parseLong((matcher.group(3))));
+                total_size = total_size + Long.parseLong((matcher.group(3)));
                 attributes.put("cc", Double.parseDouble(matcher.group(4)));
                 Artifact a = new Artifact(id, matcher.group(2), Long.parseLong((matcher.group(3))), Double.parseDouble(matcher.group(4)), pos++);
                 artifacts.put(id, a);
@@ -203,7 +215,7 @@ public class lib {
 
                     Artifact a1 = artifacts.get(part1);
                     Artifact a2 = artifacts.get(part2);
-                    int l = (int) (Double.parseDouble(matcher.group(4)) * 100);
+                    int l = (int) (Double.parseDouble(matcher.group(4)) * 10000);
                     HyperEdge he = new HyperEdge(a1, a2, l);
                     a1.addOUT(he);
                     a2.addIN(he);
@@ -214,6 +226,8 @@ public class lib {
                     part3.put("execution_time", Double.parseDouble(matcher.group(5)));
                     part3.put("memory_usage", Integer.parseInt(matcher.group(6)));
 
+                } else {
+                    System.out.println("hmm");
                 }
             }
 
@@ -221,18 +235,27 @@ public class lib {
             e.printStackTrace();
         }
         HyperGraph hg = new HyperGraph(artifacts.values().toArray(new Artifact[0]), hyperEdges.toArray(new HyperEdge[0]));
+
+        //check Graph
+        for (Artifact a : hg.getArtifacts()) {
+            if (a.getId().contains("super")) {
+                if (a.getIN().size() < 2) {
+                    System.out.println("hmm");
+                }
+            }
+        }
+        //System.out.println("total_size: " + total_size);
         return hg;
     }
-
-    public HyperGraph TurnToTrueHG(HyperGraph limited) {
+    public HyperGraph TurnToTrueHG2(HyperGraph limited) {
 
         ArrayList<Artifact> artifacts_to_remove = new ArrayList<>();
         ArrayList<HyperEdge> hyperEdge_to_remove = new ArrayList<>();
 
         for (Artifact a : limited.getArtifacts()) {
             if (a.getId().contains("super")) {
-                if(a.getIN(0).size() < 2){
-                    int k;
+                if (a.getIN().size() < 2) {
+                    System.out.println("hm");
                 }
                 ArrayList<Artifact> super_in_0 = a.getIN(0);
                 ArrayList<Artifact> super_in_1 = a.getIN(1);
@@ -276,8 +299,75 @@ public class lib {
         return limited;
     }
 
+    public HyperGraph TurnToTrueHG(HyperGraph limited) {
+
+        ArrayList<Artifact> artifacts_to_remove = new ArrayList<>();
+        ArrayList<HyperEdge> hyperEdge_to_remove = new ArrayList<>();
+
+        for (Artifact a : limited.getArtifacts()) {
+            if (a.getId().contains("super")) {
+                if (a.getIN().size() < 2) {
+                    System.out.println("hm");
+                }
+
+                ArrayList<Artifact> in = new ArrayList<>();
+                for(ArrayList<Artifact> super_in_artifact : a.getIN_Artifacts()){
+                    in.add(super_in_artifact.get(0));
+                }
+               // ArrayList<Artifact> super_in_0 = a.getIN(0);
+               // ArrayList<Artifact> super_in_1 = a.getIN(1);
+
+                //IN artifacts (a_0, a_1) and OUT artifacts(a_3)
+               // Artifact a_0 = super_in_0.get(0);
+               // Artifact a_1 = super_in_1.get(0);
+                ArrayList<Artifact> out_list = a.getOUT().get(0).getOUT();
+                Artifact a_3 = out_list.get(0);
+
+                //there are two in edges and one out edge that needs to be removed
+
+                ArrayList<HyperEdge> he_in = new ArrayList<>();
+                for(Artifact a_0: in){
+                    he_in.add(a_0.getOUT(a.getId()));
+                    a_0.removeOUT(a_0.getOUT(a.getId()));
+                    hyperEdge_to_remove.add(a_0.getOUT(a.getId()));
+                }
+
+                //HyperEdge he_IN_0 = a_0.getOUT(a.getId());
+                //HyperEdge he_IN_1 = a_1.getOUT(a.getId());
+                HyperEdge he_OUT = a.getOUT().get(0);
+
+                int l = he_OUT.getCost();
+
+                //a_0.removeOUT(he_IN_0);
+                //a_1.removeOUT(he_IN_1);
+                a_3.removeIN(he_OUT);
+
+
+                //super_in_0.add(a_1);
+
+                ArrayList<Artifact> copy = (ArrayList<Artifact>) in.clone();
+                HyperEdge he = new HyperEdge(copy, out_list, l);
+                for(Artifact a_0: in){
+                    a_0.addOUT(he);
+                }
+
+
+                a_3.addIN(he);
+
+                //hyperEdge_to_remove.add(he_IN_0);
+                hyperEdge_to_remove.add(he_OUT);
+
+                artifacts_to_remove.add(a);
+
+            }
+        }
+        limited.removeHyperEdges(hyperEdge_to_remove);
+        limited.removeArtifacts(artifacts_to_remove);
+        return limited;
+    }
+
     public ArrayList<String> read_requests(String project_path, int iteration, String uid) {
-        String graph_path = project_path + "//iterations//" + uid + "_iterations_diff_" + iteration + ".txt";
+        String graph_path = project_path + "//iterations_diff//" + uid + "_iterations_diff_" + iteration + ".txt";
         BufferedReader br = null;
         ArrayList<String> mySet = new ArrayList<>();
         try {
@@ -300,13 +390,125 @@ public class lib {
     public ArrayList<String> euqivalentRequests(ArrayList<String> mySet) {
         ArrayList<String> out = new ArrayList<>();
         for (String node : mySet) {
+            if (node.contains("fit") || node.contains("_fit")) {
+                out.add(removePrefixes(node));
+            } else {
                 String modifiedNode = node.replace("GP", "")
                         .replace("TF", "")
-                        .replace("TR", "");
+                        .replace("TR", "")
+                        .replace("SK", "")
+                        .replace("GL", "");
 
                 out.add(modifiedNode);
+            }
         }
         return out;
     }
-}
 
+    public static String removePrefixes(String s) {
+        Pattern pattern = Pattern.compile("GP|TF|TR|SK|GL");
+        Matcher matcher = pattern.matcher(s);
+
+        // Collect all the matches into a list
+        List<MatchResult> matches = new ArrayList<>();
+        while (matcher.find()) {
+            matches.add(matcher.toMatchResult());
+        }
+
+        // If there are matches, remove them all from the string
+        if (!matches.isEmpty()) {
+            StringBuilder sb = new StringBuilder(s);
+
+            // Since we'll be adjusting the string and altering its length,
+            // we need to compute the position offsets while removing matches
+            int offset = 0;
+            for (int i = 0; i < matches.size()-1; i++) {
+                MatchResult match = matches.get(i);
+                int start = match.start() - offset;
+                int end = match.end() - offset;
+
+                sb.delete(start, end);
+                offset += (end - start);
+            }
+
+            return sb.toString();
+        }
+
+        return s;
+    }
+
+
+    public void Stats_on_Stored_Artifacts( HyperGraph hg){
+        //ArtifactTypes source, raw, train, test, fitted_operator,score
+
+        int train = 0;
+        int test = 0;
+        int fitted = 0;
+        int score = 0;
+
+        int t_train = 0;
+        int t_test = 0;
+        int t_fitted = 0;
+        int t_score = 0;
+
+        double s_train = 0;
+        double s_test = 0;
+        double s_fitted = 0;
+        double s_score = 0;
+
+        double t_s_train = 0;
+        double t_s_test = 0;
+        double t_s_fitted = 0;
+        double t_s_score = 0;
+
+
+        for(Artifact a: hg.getArtifacts()){
+            a.check_if_stored();
+        }
+        for(Artifact a: hg.getArtifacts()){
+            if(a.getArtifactType().startsWith("train")) {
+                t_train++;
+                t_s_train = t_s_train + a.getSize();
+                if (a.isMateriliazed()) {
+                    train++;
+                    s_train = s_train + a.getSize();
+                }
+            } else if(a.getArtifactType().startsWith("test")){
+                t_test++;
+                t_s_test = t_s_test + a.getSize();
+                if(a.isMateriliazed()){
+                    test++;
+                    s_test = s_test + a.getSize();
+                }
+
+            }else if(a.getArtifactType().startsWith("fitted_operator")){
+                t_fitted++;
+                t_s_fitted = t_s_fitted + a.getSize();
+                if(a.isMateriliazed()){
+                    fitted++;
+                    s_fitted = s_fitted + a.getSize();
+                }
+
+            }else if(a.getArtifactType().startsWith("score")){
+                t_score++;
+                t_s_score = t_s_score + a.getSize();
+                if(a.isMateriliazed()){
+                    score++;
+                    s_score = s_score + a.getSize();
+                }
+
+            }
+        }
+
+        int stored= train + test + fitted + score;
+        int total =  t_train+  t_test + t_fitted + t_score;
+        double stored_size =  s_train +  s_test + s_fitted + s_score;
+        double t_stored_size =  t_s_train +  t_s_test + t_s_fitted + t_s_score;
+        //System.out.println( "total,stored,t_train ,train ,t_test,test,t_fitted ,fitted,t_score ,score");
+        System.out.println( total+","+ stored +","+t_train +","+ train +","+t_test+","+ test +","+t_fitted +","+fitted +","+ t_score +","+score);
+        //System.out.println("t_stored_size,stored_size,t_s_train,s_train,t_s_test, s_test, t_s_fitted, s_fitted,t_s_score, s_score");
+        //System.out.println(t_stored_size +","+ stored_size +","+t_s_train+","+ s_train+","+   t_s_test+","+ s_test+","+ t_s_fitted+","+ s_fitted+","+  t_s_score+","+ s_score);
+    }
+
+
+}

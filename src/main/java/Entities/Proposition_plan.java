@@ -12,7 +12,7 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    private static int default_cost = 20;
    private Integer cost;
    private ArrayList<Proposition> propositions;
-   private ArrayList<Artifact> already_expanded;
+   private ArrayList<String> already_expanded;
    private int heuristic_cost=0;
    private Integer latency;
 
@@ -140,7 +140,7 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
 
    public void add_for_sch_max(Proposition p) {
       this.cost = this.cost +p.getCost();
-      this.heuristic_cost = heuristic_cost_max_sch(p.getArtifacts(), already_expanded);
+      //this.heuristic_cost = heuristic_cost_max_sch(p.getArtifacts(), already_expanded);
       this.propositions.add(p);
       add_in_exanded_list(p);
       if(p.isROOT()){
@@ -148,7 +148,7 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
       }
    }
 
-   private int heuristic_cost_max_sch(ArrayList<Artifact> artifacts, ArrayList<Artifact> already_expanded) {
+  /* private int heuristic_cost_max_sch(ArrayList<Artifact> artifacts, ArrayList<Artifact> already_expanded) {
       Artifact_latency_comparator comparator = new Artifact_latency_comparator();
       PriorityQueue<Artifact> max_latency = new PriorityQueue<Artifact>(comparator);
       max_latency.addAll(artifacts);
@@ -166,12 +166,12 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
       }
       return tmp_2.current_latency(already_expanded);
    }
-
+*/
 
    private void add_in_exanded_list(Proposition p) {
       for(Artifact a: p.getArtifacts()){
-         if(!already_expanded.contains(a)){
-            already_expanded.add(a);
+         if(!already_expanded.contains(a.getId())){
+            already_expanded.add(a.getId());
          }
       }
    }
@@ -185,20 +185,24 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
    }
 
    public ArrayList<Artifact> get_unexpanded_proposition() {
+      ArrayList<Artifact> toRemove = new ArrayList<>();
       ArrayList<Artifact> list =  propositions.get(propositions.size()-1).getArtifacts();
-      for (Artifact element : already_expanded) {
-         if (list.contains(element)) {
-            list.remove(element);
+      for(Artifact a: list) {
+         String id = a.getId();
+            if (already_expanded.contains(id)) {
+               toRemove.add(a);
+            }
          }
-      }
-      return list;
+         list.removeAll(toRemove);
+         return list;
    }
 
-   public ArrayList<Artifact> getAlready_expanded() {
+
+   public ArrayList<String> getAlready_expanded() {
       return already_expanded;
    }
 
-   public void setAlready_expanded(ArrayList<Artifact> already_expanded) {
+   public void setAlready_expanded(ArrayList<String> already_expanded) {
       this.already_expanded = already_expanded;
    }
 
@@ -222,7 +226,12 @@ public class Proposition_plan implements Comparable<Proposition_plan>{
 
 
    public void update_expanded_list() {
-      already_expanded.addAll(this.get_unexpanded_proposition());
+      ArrayList<String> list =  propositions.get(propositions.size()-1).getArtifactsIDs();
+      for (String element : list) {
+         if (!already_expanded.contains(element)) {
+            already_expanded.add(element);
+         }
+      }
    }
 }
 

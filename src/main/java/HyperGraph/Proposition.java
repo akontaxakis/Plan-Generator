@@ -40,6 +40,13 @@ public class  Proposition {
     public ArrayList<Artifact> getArtifacts() {
         return artifacts;
     }
+    public ArrayList<String> getArtifactsIDs() {
+        ArrayList<String> ids = new ArrayList<>();
+        for(Artifact a: artifacts){
+            ids.add(a.getId());
+        }
+        return ids;
+    }
 
     public void setArtifacts(ArrayList<Artifact> artifacts) {
         this.artifacts = artifacts;

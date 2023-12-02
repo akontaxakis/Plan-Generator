@@ -13,6 +13,7 @@ public class Artifact {
     //private  int loading_speed = 5602400;
     private boolean materialized=false;
     private int loadCost;
+
     private int recreation_cost= 0;
     private int latency_cost= 0;
     private int computeCost= 0;
@@ -24,7 +25,27 @@ public class Artifact {
 
     private int freq;
     private int score;
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
+    }
+
     private Long size;
+
+    public String getArtifactType() {
+        return artifactType;
+    }
+
+    public void setArtifactType(String artifactType) {
+        this.artifactType = artifactType;
+    }
+
+    private String artifactType = "data";
+
 
     public Artifact(Artifact current, ArrayList<Artifact> in, int c) {
         this.id = current.getId();
@@ -41,11 +62,13 @@ public class Artifact {
     public Artifact(String id, String group, Long parseInt, double parseDouble, int pos) {
     this.id = id;
     this.position = pos;
+    this.artifactType = group;
     if(group.startsWith("source")) {
         type = NodeType.ROOT;
     }else{
         type = NodeType.INTERMEDIATE;
     }
+    size = parseInt;
     this.computeCost = (int)parseDouble;
     this.loadCost = (int) (parseInt/loading_speed);
 
@@ -143,6 +166,18 @@ public class Artifact {
             OUT.remove(a);
         }
     }
+
+    public boolean check_if_stored(){
+        for(HyperEdge in: IN){
+           if(in.getIN().get(0).isROOT()){
+               materialized =true;
+               return true;
+           }
+        }
+        return false;
+    }
+
+
 
 
     public boolean isINTERMEDIATE() {
@@ -245,6 +280,14 @@ public class Artifact {
 
     public boolean isMateriliazed() {
         return materialized;
+    }
+
+    public  ArrayList<ArrayList<Artifact>> getIN_Artifacts() {
+        ArrayList<ArrayList<Artifact>> edges_in = new ArrayList<>();
+        for(HyperEdge e: IN){
+            edges_in.add(e.getIN());
+        }
+        return edges_in;
     }
 
 

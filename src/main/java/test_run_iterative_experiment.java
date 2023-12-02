@@ -13,8 +13,8 @@ public class test_run_iterative_experiment {
         lib utils = new lib();
         String uid = "ex100";
         uid = "b8i150";
-        uid = "b100s1000000";
-        int iterations =2;
+        uid = "HIGGS";
+        int iterations =32;
         int b = 3;
 
         String project_path= "C:\\Users\\adoko\\PycharmProjects\\pythonProject1\\";

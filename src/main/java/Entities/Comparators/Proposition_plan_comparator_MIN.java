@@ -15,7 +15,7 @@ public int compare(Proposition_plan o1, Proposition_plan o2) {
 
     private int heuristic_cost(ArrayList<Artifact> unexpanded_proposition) {
         int min = 10000;
-        int default_cost = 20;
+        int default_cost = 100;
         for(Artifact a: unexpanded_proposition){
             if(a.get_heuristic_cost(default_cost)<=min){
                 min = a.get_heuristic_cost(default_cost);
